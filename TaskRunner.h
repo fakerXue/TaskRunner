@@ -2,7 +2,7 @@
 ** Copyright(c) 2016-2020  faker
 ** All rights reserved.
 ** Name		: TaskRunner.h
-** Desc		: ä¸€ä¸ªå¤šåŠŸèƒ½ä»»åŠ¡æœºï¼Œæ”¯æŒä¸²è¡Œã€å¹¶è¡Œã€å»¶æ—¶ã€å¾ªç¯ã€è·³è½¬ã€ä»»åŠ¡å¸è½½ã€äº‹ä»¶é€šçŸ¥
+** Desc		: Ò»¸ö¶à¹¦ÄÜÈÎÎñ»ú£¬Ö§³Ö´®ĞĞ¡¢²¢ĞĞ¡¢ÑÓÊ±¡¢Ñ­»·¡¢Ìø×ª¡¢ÈÎÎñĞ¶ÔØ¡¢ÊÂ¼şÍ¨Öª
 ** Author	: faker@2016-10-26 19:58:35
 *************************************************************************/
 
@@ -20,9 +20,9 @@ namespace x2lib
         struct TaskInfo
         {
             /*************************************************************************
-            ** Desc		: æ„é€ ä¸€ä¸ªä»»åŠ¡å¯¹è±¡
-            ** Param	: [in] f ä»»åŠ¡è¿‡ç¨‹å‡½æ•°æŒ‡é’ˆï¼Œå‚æ•°ä¸ªæ•°ä¸é™åˆ¶ï¼Œä½†è‡³å°‘ä¿è¯è¿”å›å€¼ä¸ºint
-            **			  [in] args ä»»åŠ¡å‡½æ•°å‚æ•°
+            ** Desc		: ¹¹ÔìÒ»¸öÈÎÎñ¶ÔÏó
+            ** Param	: [in] f ÈÎÎñ¹ı³Ìº¯ÊıÖ¸Õë£¬²ÎÊı¸öÊı²»ÏŞÖÆ£¬µ«ÖÁÉÙ±£Ö¤·µ»ØÖµÎªint
+            **			  [in] args ÈÎÎñº¯Êı²ÎÊı
             ** Return	:
             ** Author	: faker@2020-10-19 09:58:07
             *************************************************************************/
@@ -41,7 +41,7 @@ namespace x2lib
                 this->vFuncs.clear();
             };
 
-            // æ·»åŠ ä¸€ä¸ªæ‰§è¡Œä½“ï¼Œè¿”å›å½“å‰æ‰§è¡Œä½“ç´¢å¼•
+            // Ìí¼ÓÒ»¸öÖ´ĞĞÌå£¬·µ»Øµ±Ç°Ö´ĞĞÌåË÷Òı
             template<class F, class...Args>
             int Put(F f, Args...args)
             {
@@ -49,7 +49,7 @@ namespace x2lib
                 return this->vFuncs.size() - 1;
             }
 
-            // åˆ é™¤æŒ‡å®šç´¢å¼•çš„æ‰§è¡Œä½“ï¼Œè¿”å›å‰©ä½™æ‰§è¡Œä½“ä¸ªæ•°
+            // É¾³ıÖ¸¶¨Ë÷ÒıµÄÖ´ĞĞÌå£¬·µ»ØÊ£ÓàÖ´ĞĞÌå¸öÊı
             int Del(int iFunc)
             {
                 if (iFunc >= this->vFuncs.size())
@@ -58,20 +58,20 @@ namespace x2lib
                 return this->vFuncs.size();
             }
 
-            // å¾—åˆ°æ‰§è¡Œä½“ä¸ªæ•°
+            // µÃµ½Ö´ĞĞÌå¸öÊı
             int Size()
             {
                 return this->vFuncs.size();
             }
 
-            int id; // ä»»åŠ¡idï¼ˆä»1å¼€å§‹é¡ºåºå¢åŠ ï¼‰å…¶ä½™è¡¨ç¤ºç”¨æˆ·ä»»åŠ¡idã€Loadè¿”å›å€¼ã€‘
-            int iRet; // æ‰§è¡Œç»“æœï¼Œç”¨æˆ·è‡ªå®šä¹‰
-            unsigned long ulWait; // å»¶æ—¶ï¼ˆæ¯«ç§’ï¼‰
+            int id; // ÈÎÎñid£¨´Ó1¿ªÊ¼Ë³ĞòÔö¼Ó£©ÆäÓà±íÊ¾ÓÃ»§ÈÎÎñid¡¾Load·µ»ØÖµ¡¿
+            int iRet; // Ö´ĞĞ½á¹û£¬ÓÃ»§×Ô¶¨Òå
+            unsigned long ulWait; // ÑÓÊ±£¨ºÁÃë£©
 
         private:
-            int iState; // 0æœªæ‰§è¡Œï¼Œ1æ­£åœ¨æ‰§è¡Œï¼Œ2å·²æ‰§è¡Œ
-            unsigned long ulTick; // å†…éƒ¨ä½¿ç”¨çš„æ—¶é—´æˆ³
-            std::vector<std::function<int(void)>> vFuncs; // std::function<int(void)>è¦æ±‚äº†æ·»åŠ çš„å‡½æ•°è‡³å°‘æ»¡è¶³è¿”å›å€¼ä¸ºintï¼Œä½†å‚æ•°ä¸ªæ•°å’Œç±»å‹å¯ä»¥ä¸é™
+            int iState; // 0Î´Ö´ĞĞ£¬1ÕıÔÚÖ´ĞĞ£¬2ÒÑÖ´ĞĞ
+            unsigned long ulTick; // ÄÚ²¿Ê¹ÓÃµÄÊ±¼ä´Á
+            std::vector<std::function<int(void)>> vFuncs; // std::function<int(void)>ÒªÇóÁËÌí¼ÓµÄº¯ÊıÖÁÉÙÂú×ã·µ»ØÖµÎªint£¬µ«²ÎÊı¸öÊıºÍÀàĞÍ¿ÉÒÔ²»ÏŞ
 
             friend class TaskRunner;
         };
@@ -80,10 +80,10 @@ namespace x2lib
         {
         public:
             /*************************************************************************
-            ** Desc		: é€šçŸ¥
-            ** Param	: [in] pTaskInfo ä»»åŠ¡ä½“ï¼Œé€šè¿‡iStateæˆå‘˜åˆ¤æ–­æ˜¯æ‰§è¡Œå‰è¿˜æ˜¯æ‰§è¡Œå
-            **			  [in,out] vCache ä»»åŠ¡æœºå…±äº«æ•°æ®åŒº
-            **			  [in] nCache ä»»åŠ¡æœºå…±äº«æ•°æ®åŒºå¤§å°
+            ** Desc		: Í¨Öª
+            ** Param	: [in] pTaskInfo ÈÎÎñÌå£¬Í¨¹ıiState³ÉÔ±ÅĞ¶ÏÊÇÖ´ĞĞÇ°»¹ÊÇÖ´ĞĞºó
+            **			  [in,out] vCache ÈÎÎñ»ú¹²ÏíÊı¾İÇø
+            **			  [in] nCache ÈÎÎñ»ú¹²ÏíÊı¾İÇø´óĞ¡
             ** Return	:
             ** Author	: faker@2016-10-26 19:58:35
             *************************************************************************/
@@ -92,9 +92,9 @@ namespace x2lib
 
     public:
         /*************************************************************************
-        ** Desc		: æ„é€ å‡½æ•°
-        ** Param	: [in] nCache å…±äº«ç¼“å†²åŒºå¤§å°
-        **			  [in] pListener ç›‘å¬å™¨
+        ** Desc		: ¹¹Ôìº¯Êı
+        ** Param	: [in] nCache ¹²Ïí»º³åÇø´óĞ¡
+        **			  [in] pListener ¼àÌıÆ÷
         ** Return	:
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
@@ -137,9 +137,9 @@ namespace x2lib
         };
 
         /*************************************************************************
-        ** Desc		: å¯åŠ¨
-        ** Param	: [in] isLoop æ˜¯å¦å¾ªç¯æ‰§è¡Œ
-        ** Return	: æ˜¯å¦æ“ä½œæˆåŠŸ
+        ** Desc		: Æô¶¯
+        ** Param	: [in] isLoop ÊÇ·ñÑ­»·Ö´ĞĞ
+        ** Return	: ÊÇ·ñ²Ù×÷³É¹¦
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         bool Start(bool isLoop)
@@ -161,11 +161,11 @@ namespace x2lib
         }
 
         /*************************************************************************
-        ** Desc		: åœæ­¢
-        ** Param	: [in] isClear æ˜¯å¦æ¸…é™¤ä»»åŠ¡é˜Ÿåˆ—
-        **            [in] nWaitMillSeconds æœ€é•¿ç­‰å¾…æ—¶é•¿(â‰¥0ï¼Œ50msä¸€å•ä½ï¼‰ï¼Œ-1è¡¨ç¤º
-        **              æ— é™ç­‰å¾…ï¼Œç›´åˆ°å½“å‰ä»»åŠ¡æ‰§è¡Œç»“æŸ
-        ** Return	: æ˜¯å¦æ˜¯è¶…æ—¶è¿”å›
+        ** Desc		: Í£Ö¹
+        ** Param	: [in] isClear ÊÇ·ñÇå³ıÈÎÎñ¶ÓÁĞ
+        **            [in] nWaitMillSeconds ×î³¤µÈ´ıÊ±³¤(¡İ0£¬50msÒ»µ¥Î»£©£¬-1±íÊ¾
+        **              ÎŞÏŞµÈ´ı£¬Ö±µ½µ±Ç°ÈÎÎñÖ´ĞĞ½áÊø
+        ** Return	: ÊÇ·ñÊÇ³¬Ê±·µ»Ø
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         bool Stop(bool isClear, int nWaitMillSeconds)
@@ -176,11 +176,11 @@ namespace x2lib
             }
             m_isRunning = false;
 
-            // æ¿€æ´»ä¸²è¡Œå’Œå¹¶è¡Œçº¿ç¨‹
+            // ¼¤»î´®ĞĞºÍ²¢ĞĞÏß³Ì
             m_pSignal->Notify(1);
             m_pSigPool->Notify(POOL_THREAD_COUNT);
 
-            // ç­‰å¾…ï¼Œæ¸…ç†çº¿ç¨‹
+            // µÈ´ı£¬ÇåÀíÏß³Ì
             int iSigCount = 0;
             for (int i = 0; i < nWaitMillSeconds; i += 50)
             {
@@ -192,7 +192,7 @@ namespace x2lib
                     }
                 }
                 if (iSigCount >= 1 + POOL_THREAD_COUNT)
-                { // å®Œç¾ç»“æŸï¼Œç­‰å¾…æˆåŠŸ
+                { // ÍêÃÀ½áÊø£¬µÈ´ı³É¹¦
                     break;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -210,7 +210,7 @@ namespace x2lib
                 delete it;
             }
 
-            // æ¸…é™¤ä»»åŠ¡é˜Ÿåˆ—
+            // Çå³ıÈÎÎñ¶ÓÁĞ
             while (isClear && m_lsTaskInfo.size() > 0)
             {
                 delete m_lsTaskInfo.back();
@@ -221,15 +221,15 @@ namespace x2lib
         }
 
         /*************************************************************************
-        ** Desc		: åŠ è½½ä¸€ä¸ªä»»åŠ¡ï¼Œå¿…é¡»åœ¨Startä¹‹åä½¿ç”¨
-        ** Param	: [in] ti æ˜¯å¦å¾ªç¯æ‰§è¡Œ
-        **            [in] ms å»¶æ—¶æ—¶é•¿ï¼Œå¤§äºç­‰äº0
-        ** Return	: å½“å‰ä»»åŠ¡id
+        ** Desc		: ¼ÓÔØÒ»¸öÈÎÎñ£¬±ØĞëÔÚStartÖ®ºóÊ¹ÓÃ
+        ** Param	: [in] ti ÊÇ·ñÑ­»·Ö´ĞĞ
+        **            [in] ms ÑÓÊ±Ê±³¤£¬´óÓÚµÈÓÚ0
+        ** Return	: µ±Ç°ÈÎÎñid
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         int Load(const TaskInfo& ti, unsigned long ms)
         {
-            if (ti.vFuncs.size() < 1 || !m_isRunning/*å¿…é¡»å…ˆStart*/)
+            if (ti.vFuncs.size() < 1 || !m_isRunning/*±ØĞëÏÈStart*/)
                 return -1;
 
             m_pMutex->Lock();
@@ -237,7 +237,7 @@ namespace x2lib
             pTaskInfo->id = ++TaskRunner::_iIDCounter_;
             pTaskInfo->ulWait = ms;
             pTaskInfo->ulTick = (unsigned long)SysUtil::GetCurrentTick() + ms;
-            // æ’åºï¼Œéµå¾ªé åçš„åæ‰§è¡Œ
+            // ÅÅĞò£¬×ñÑ­¿¿ºóµÄºóÖ´ĞĞ
             for (std::list<TaskInfo*>::iterator it = m_lsTaskInfo.begin(); ; ++it)
             {
                 if (it == m_lsTaskInfo.end())
@@ -257,10 +257,10 @@ namespace x2lib
         };
 
         /*************************************************************************
-        ** Desc		: å¸è½½ä»»åŠ¡
-        ** Param	: [in] id id=-1è¡¨ç¤ºç§»é™¤æ‰€æœ‰ä»»åŠ¡ï¼Œå¦åˆ™ç§»é™¤å¯¹åº”idçš„ä»»åŠ¡ï¼Œè¿”å›æˆ
-        **              åŠŸç§»é™¤çš„ä»»åŠ¡ä¸ªæ•°
-        ** Return	: å¸è½½çš„ä»»åŠ¡çš„ä¸ªæ•°
+        ** Desc		: Ğ¶ÔØÈÎÎñ
+        ** Param	: [in] id id=-1±íÊ¾ÒÆ³ıËùÓĞÈÎÎñ£¬·ñÔòÒÆ³ı¶ÔÓ¦idµÄÈÎÎñ£¬·µ»Ø³É
+        **              ¹¦ÒÆ³ıµÄÈÎÎñ¸öÊı
+        ** Return	: Ğ¶ÔØµÄÈÎÎñµÄ¸öÊı
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         int Unload(int id = -1)
@@ -285,10 +285,10 @@ namespace x2lib
         };
 
         /*************************************************************************
-        ** Desc		: æ¸¸æ ‡æ§åˆ¶ï¼ˆè·³è½¬ï¼‰
-        ** Param	: [in] id æŒ‡å®šä»»åŠ¡çš„id
-        **            [in] isResetFollow æ˜¯å¦é‡ç½®åç»­ä»»åŠ¡çš„çŠ¶æ€ï¼ˆiStateï¼‰
-        ** Return	: æ˜¯å¦æ“ä½œæˆåŠŸ
+        ** Desc		: ÓÎ±ê¿ØÖÆ£¨Ìø×ª£©
+        ** Param	: [in] id Ö¸¶¨ÈÎÎñµÄid
+        **            [in] isResetFollow ÊÇ·ñÖØÖÃºóĞøÈÎÎñµÄ×´Ì¬£¨iState£©
+        ** Return	: ÊÇ·ñ²Ù×÷³É¹¦
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         bool Seek(int id, bool isResetFollow)
@@ -312,9 +312,9 @@ namespace x2lib
         };
 
         /*************************************************************************
-        ** Desc		: è·å–å…±äº«ç¼“å†²åŒº
-        ** Param	: [out] pnData è¿”å›ç¼“å†²åŒºå¤§å°
-        ** Return	: è¿”å›ç¼“å†²åŒºåœ°å€
+        ** Desc		: »ñÈ¡¹²Ïí»º³åÇø
+        ** Param	: [out] pnData ·µ»Ø»º³åÇø´óĞ¡
+        ** Return	: ·µ»Ø»º³åÇøµØÖ·
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
         void* GetCache(int* pnData = NULL)
@@ -331,7 +331,7 @@ namespace x2lib
             {
                 std::thread* pThread = pThis->m_vecpThread[index];
 
-                // ä»»åŠ¡å¼€å§‹å‰çš„â€œä¼ªä»»åŠ¡â€
+                // ÈÎÎñ¿ªÊ¼Ç°µÄ¡°Î±ÈÎÎñ¡±
                 if (pThis->m_pListener) pThis->m_pListener->Notify(NULL, pThis->m_vCache, pThis->m_nCache);
 
                 do
@@ -344,7 +344,7 @@ namespace x2lib
                         continue;
                     }
 
-                    // è·å–ä¸‹ä¸€ä¸ªæœªæ‰§è¡Œçš„ä»»åŠ¡
+                    // »ñÈ¡ÏÂÒ»¸öÎ´Ö´ĞĞµÄÈÎÎñ
                     TaskRunner::TaskInfo* pFind = NULL;
                     for (std::list<TaskRunner::TaskInfo*>::iterator it = pThis->m_lsTaskInfo.begin(); it != pThis->m_lsTaskInfo.end(); ++it)
                     {
@@ -362,12 +362,12 @@ namespace x2lib
                         long ulWaitms = (long)pFind->ulTick - (long)SysUtil::GetCurrentTick();
                         pThis->m_pSignal->Wait(ulWaitms > 0 ? ulWaitms : 0);
                         if (pFind->vFuncs.size() < 2)
-                        { // åªæœ‰ä¸€ä¸ªæ‰§è¡Œä½“æ—¶åœ¨å½“å‰çº¿ç¨‹æ‰§è¡Œ
+                        { // Ö»ÓĞÒ»¸öÖ´ĞĞÌåÊ±ÔÚµ±Ç°Ïß³ÌÖ´ĞĞ
                             pFind->iRet = pFind->vFuncs[0]();
                         }
                         else
-                        { // å¤šä¸ªæ‰§è¡Œä½“æ—¶åœ¨çº¿ç¨‹æ± æ‰§è¡Œ
-                            // æ— éœ€åŠ é”
+                        { // ¶à¸öÖ´ĞĞÌåÊ±ÔÚÏß³Ì³ØÖ´ĞĞ
+                            // ÎŞĞè¼ÓËø
                             pThis->m_pvFuncs = &pFind->vFuncs;
                             pThis->m_vFuncId.clear();
                             for (int i = 0; i < pFind->vFuncs.size(); ++i)
@@ -385,7 +385,7 @@ namespace x2lib
                         if (pThis->m_pListener) pThis->m_pListener->Notify(pFind, pThis->m_vCache, pThis->m_nCache);
 
                         if (!pThis->m_isLoop)
-                        { // æ¸…ç†å·²æ‰§è¡Œçš„ä»»åŠ¡
+                        { // ÇåÀíÒÑÖ´ĞĞµÄÈÎÎñ
                             pThis->m_pMutex->Lock();
                             std::list<TaskRunner::TaskInfo*>::iterator it = std::find(pThis->m_lsTaskInfo.begin(), pThis->m_lsTaskInfo.end(), pFind);
                             if (it != pThis->m_lsTaskInfo.end())
@@ -397,7 +397,7 @@ namespace x2lib
                         }
                     }
                     else if (pThis->m_isLoop)
-                    { // å°†æ‰€æœ‰ä»»åŠ¡ç½®ä¸ºæœªæ‰§è¡Œ
+                    { // ½«ËùÓĞÈÎÎñÖÃÎªÎ´Ö´ĞĞ
                         pThis->m_pMutex->Lock();
                         for (auto& it : pThis->m_lsTaskInfo)
                         {
@@ -414,8 +414,8 @@ namespace x2lib
                 return 0;
             }
 
-            /** çº¿ç¨‹æ± 
-                @param [in] pThis å½“å‰å¯¹è±¡æŒ‡é’ˆ
+            /** Ïß³Ì³Ø
+                @param [in] pThis µ±Ç°¶ÔÏóÖ¸Õë
                 @return
                 @note
             */
@@ -426,7 +426,7 @@ namespace x2lib
                 do
                 {
                     pThis->m_pMtxPool->Lock();
-                    if (pThis->m_pvFuncs == nullptr/*é’ˆå¯¹çº¿ç¨‹æ± åˆšå¯åŠ¨*/ || pThis->m_vFuncId.size() < 1/*é’ˆå¯¹å¹¶è¡Œä»»åŠ¡æ‰§è¡Œå®Œæˆ*/) // æš‚æ—¶æ²¡æœ‰å¹¶è¡Œä»»åŠ¡
+                    if (pThis->m_pvFuncs == nullptr/*Õë¶ÔÏß³Ì³Ø¸ÕÆô¶¯*/ || pThis->m_vFuncId.size() < 1/*Õë¶Ô²¢ĞĞÈÎÎñÖ´ĞĞÍê³É*/) // ÔİÊ±Ã»ÓĞ²¢ĞĞÈÎÎñ
                     {
                         pThis->m_pSigPool->Wait();
                         pThis->m_pMtxPool->Unlock();
@@ -438,9 +438,9 @@ namespace x2lib
                     pThis->m_pMtxPool->Unlock();
 
                     pThis->m_pvFuncs->at(iFuncId)();
-                    pThis->m_pSigPoolEnd->Notify(1); // é€šçŸ¥1æ¬¡ã€æ€»å…±éœ€m_pvFuncs->size()æ¬¡ã€‘å¹¶è¡Œä»»åŠ¡å·²ç»æ‰§è¡Œç»“æŸ
+                    pThis->m_pSigPoolEnd->Notify(1); // Í¨Öª1´Î¡¾×Ü¹²Ğèm_pvFuncs->size()´Î¡¿²¢ĞĞÈÎÎñÒÑ¾­Ö´ĞĞ½áÊø
 
-                } while (pThis->m_isRunning); // ç»æµ‹è¯•ï¼Œcontinueå¯ä»¥æ‰§è¡Œåˆ°æ­¤æ¡ä»¶
+                } while (pThis->m_isRunning); // ¾­²âÊÔ£¬continue¿ÉÒÔÖ´ĞĞµ½´ËÌõ¼ş
                 pThis->m_pSigExit->Notify(1);
 
                 return 0;
@@ -463,7 +463,7 @@ namespace x2lib
         const int POOL_THREAD_COUNT = 2;
         //const int FUNCS_MAX_COUNT = 4096;
 
-        std::vector<std::thread*> m_vecpThread; // 0å·ä¸ºç›‘è§†çº¿ç¨‹ï¼Œ1å·ä¸ºä¸²è¡Œä»»åŠ¡çº¿ç¨‹ï¼Œä½™ä¸‹ä¸ºå¹¶è¡Œä»»åŠ¡çº¿ç¨‹æ± 
+        std::vector<std::thread*> m_vecpThread; // 0ºÅÎª¼àÊÓÏß³Ì£¬1ºÅÎª´®ĞĞÈÎÎñÏß³Ì£¬ÓàÏÂÎª²¢ĞĞÈÎÎñÏß³Ì³Ø
         std::list<TaskInfo*> m_lsTaskInfo;
         std::vector<std::function<int(void)>>* m_pvFuncs;
         std::vector<int> m_vFuncId;
