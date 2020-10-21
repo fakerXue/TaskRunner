@@ -9,11 +9,108 @@
 #ifndef _C056CD96_EE58_46B2_B6B7_E6164F91BE60
 #define _C056CD96_EE58_46B2_B6B7_E6164F91BE60
 
-#include "xCores.h"
-#include "SysUtil.h"
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <Windows.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <ctype.h>  
+#include <time.h>  
+#include <sys/types.h>
+#include <sys/timeb.h> 
+
+#include <string>
+#include <vector>
+#include <map>
+#include <queue>
+#include <list>
+#include <set>
+#include <functional>
+#include <mutex>
+#include <unordered_map>
+#include <unordered_set>
+
 
 namespace x2lib
 {
+
+    /*************************************辅助类************************************/
+#pragma region 辅助类
+
+    class Mutex
+    {
+    public:
+        Mutex()
+        {
+            m_mutex = (int)::CreateMutex(NULL, FALSE, NULL);
+        }
+
+        virtual ~Mutex()
+        {
+            CloseHandle((HANDLE)m_mutex);
+        }
+
+        bool Lock() const
+        {
+            return WAIT_OBJECT_0 == WaitForSingleObject((HANDLE)m_mutex, INFINITE);
+        }
+
+        bool Unlock() const
+        {
+            return 0 != ReleaseMutex((HANDLE)m_mutex);
+        }
+
+    private:
+        int m_mutex;
+    };
+
+    class Signal
+    {
+    public:
+        Signal(int iInit, int iMax, char pName[128] = (char*)"")
+        {
+            char szName[128] = { 0 };
+            if (pName[0] == 0)
+                sprintf(szName, "xCores::Signal_%08d_%08d", (int)this, (int)&m_signal);
+            else
+                sprintf(szName, pName);
+
+            m_signal = (int)::CreateSemaphoreA(NULL, iInit, iMax, szName);
+        }
+
+        virtual ~Signal()
+        {
+            CloseHandle((HANDLE)m_signal);
+        }
+
+        virtual bool Wait(unsigned long msTimeout = -1) const
+        {
+            return WAIT_TIMEOUT == WaitForSingleObject((HANDLE)m_signal, msTimeout);
+        }
+
+        virtual bool Notify(int nCnt) const
+        {
+            return 0 != ::ReleaseSemaphore((HANDLE)m_signal, nCnt, NULL);
+        }
+
+    private:
+        int m_signal; // linux sem_id
+    };
+
+    class SysUtil
+    {
+    public:
+        static unsigned long long GetCurrentTick(bool isMill = true)
+        {
+            struct __timeb64 tp;
+            _ftime64(&tp);
+            unsigned long long tick = ((unsigned long long)time(NULL) * 1000 + tp.millitm);
+            return (isMill ? tick : (tick / 1000));
+        }
+    };
+
+#pragma endregion
+
     class TaskRunner
     {
     public:
@@ -30,6 +127,7 @@ namespace x2lib
             TaskInfo(F f, Args...args)
             {
                 this->id = 0;
+                this->vData = nullptr;
                 this->iState = 0;
                 this->ulWait = 0;
                 this->ulTick = 0;
@@ -64,7 +162,15 @@ namespace x2lib
                 return this->vFuncs.size();
             }
 
+            // 用于绑定额外的用户参数，比如函数args，可在Listener::Notify中使用
+            const TaskInfo& Bind(void* vData)
+            {
+                this->vData = vData;
+                return *this;
+            }
+
             int id; // 任务id（从1开始顺序增加）其余表示用户任务id【Load返回值】
+            void* vData; // 提供一个可供用户使用的通用参数
             int iRet; // 执行结果，用户自定义
             unsigned long ulWait; // 延时（毫秒）
 
@@ -112,15 +218,15 @@ namespace x2lib
             m_vecpThread.resize(1 + POOL_THREAD_COUNT);
             char szSigName[128] = { 0 };
             sprintf(szSigName, "TaskRunner_m_pSignal_%08x", &nCache);
-            m_pSignal = new xCores::Signal(0, 1, szSigName);
+            m_pSignal = new Signal(0, 1, szSigName);
             sprintf(szSigName, "TaskRunner_m_pSigExit_%08x", &nCache);
-            m_pSigExit = new xCores::Signal(0, 1 + POOL_THREAD_COUNT, szSigName);
-            m_pMutex = new xCores::Mutex();
-            m_pMtxPool = new xCores::Mutex();
+            m_pSigExit = new Signal(0, 1 + POOL_THREAD_COUNT, szSigName);
+            m_pMutex = new Mutex();
+            m_pMtxPool = new Mutex();
             sprintf(szSigName, "TaskRunner_m_pSigPool_%08x", &nCache);
-            m_pSigPool = new xCores::Signal(0, POOL_THREAD_COUNT, szSigName);
+            m_pSigPool = new Signal(0, POOL_THREAD_COUNT, szSigName);
             sprintf(szSigName, "TaskRunner_m_pSigPoolEnd_%08x", &nCache);
-            m_pSigPoolEnd = new xCores::Signal(0, 1, szSigName);
+            m_pSigPoolEnd = new Signal(0, 1, szSigName);
         };
         virtual ~TaskRunner()
         {
@@ -227,7 +333,7 @@ namespace x2lib
         ** Return	: 当前任务id
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
-        int Load(const TaskInfo& ti, unsigned long ms)
+        int Load(const TaskInfo& ti, unsigned long ms = 0)
         {
             if (ti.vFuncs.size() < 1 || !m_isRunning/*必须先Start*/)
                 return -1;
@@ -454,16 +560,15 @@ namespace x2lib
         int _iIDCounter_;
 
     private:
-        xCores::Mutex* m_pMutex;
-        xCores::Signal* m_pSignal;
-        xCores::Signal* m_pSigExit;
-        xCores::Mutex* m_pMtxPool;
-        xCores::Signal* m_pSigPool;
-        xCores::Signal* m_pSigPoolEnd;
-        const int POOL_THREAD_COUNT = 2;
-        //const int FUNCS_MAX_COUNT = 4096;
+        Mutex* m_pMutex;
+        Signal* m_pSignal;
+        Signal* m_pSigExit;
+        Mutex* m_pMtxPool;
+        Signal* m_pSigPool;
+        Signal* m_pSigPoolEnd;
+        const int POOL_THREAD_COUNT = 4;
 
-        std::vector<std::thread*> m_vecpThread; // 0号为监视线程，1号为串行任务线程，余下为并行任务线程池
+        std::vector<std::thread*> m_vecpThread; // 0号为串行任务线程，余下为并行任务线程池
         std::list<TaskInfo*> m_lsTaskInfo;
         std::vector<std::function<int(void)>>* m_pvFuncs;
         std::vector<int> m_vFuncId;
