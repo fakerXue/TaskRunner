@@ -48,12 +48,17 @@ public:
             printf("Seek->1\n");
         }
     }
+
+    // Í¨¹ý Listener ¼Ì³Ð
+    virtual void Notify(const TaskRunner::TaskInfo * pTaskInfo, int iFuncId, void * vCache, int nCache) override
+    {
+    }
 };
 
 int main()
 {
     Notifier notifier;
-    TaskRunner tr(1024, &notifier);
+    TaskRunner tr(&notifier);
 
     do
     {

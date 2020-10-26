@@ -1,9 +1,9 @@
 /*************************************************************************
-** Copyright(c) 2016-2020  faker
+** Copyright(c) 2016-2025  faker
 ** All rights reserved.
 ** Name		: TaskRunner.h
 ** Desc		: 一个多功能任务机，支持串行、并行、延时、循环、跳转、任务卸载、事件通知
-** Author	: faker@2016-10-26 19:58:35
+** Author	: faker@2020-10-26 11:40:58
 *************************************************************************/
 
 #ifndef _C056CD96_EE58_46B2_B6B7_E6164F91BE60
@@ -186,7 +186,7 @@ namespace x2lib
         {
         public:
             /*************************************************************************
-            ** Desc		: 通知
+            ** Desc		: 串行任务通知
             ** Param	: [in] pTaskInfo 任务体，通过iState成员判断是执行前还是执行后
             **			  [in,out] vCache 任务机共享数据区
             **			  [in] nCache 任务机共享数据区大小
@@ -194,6 +194,17 @@ namespace x2lib
             ** Author	: faker@2016-10-26 19:58:35
             *************************************************************************/
             virtual void Notify(const TaskInfo* pTaskInfo, void* vCache, int nCache) = 0;
+
+            /*************************************************************************
+            ** Desc		: 并行任务的执行器通知
+            ** Param	: [in] pTaskInfo 任务体，通过iState成员判断是执行前还是执行后
+            **			  [in] iFuncId 当前任务机执行器id
+            **			  [in,out] vCache 任务机共享数据区
+            **			  [in] nCache 任务机共享数据区大小
+            ** Return	:
+            ** Author	: faker@2016-10-26 19:58:35
+            *************************************************************************/
+            virtual void Notify(const TaskInfo* pTaskInfo, int iFuncId, void* vCache, int nCache) = 0;
         };
 
     public:
@@ -204,7 +215,7 @@ namespace x2lib
         ** Return	:
         ** Author	: faker@2016-10-26 19:58:35
         *************************************************************************/
-        TaskRunner(int nCache = 1024, Listener *pListener = NULL)
+        TaskRunner(Listener *pListener = nullptr, int nCache = 1024)
         {
             _iIDCounter_ = 0;
             m_nCache = nCache;
@@ -213,6 +224,7 @@ namespace x2lib
                 m_vCache = calloc(1, m_nCache);
             }
             m_pListener = pListener;
+            m_pTaskInfo = nullptr;
             m_isRunning = false;
             m_isLoop = false;
             m_vecpThread.resize(1 + POOL_THREAD_COUNT);
@@ -304,9 +316,6 @@ namespace x2lib
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
 
-            //bool isTimeout = false;
-
-            //bool isTimeout = m_pSigExit->Wait();
             for (auto& it : m_vecpThread)
             {
                 if (it->joinable())
@@ -450,69 +459,70 @@ namespace x2lib
                         continue;
                     }
 
-                    // 获取下一个未执行的任务
-                    TaskRunner::TaskInfo* pFind = NULL;
-                    for (std::list<TaskRunner::TaskInfo*>::iterator it = pThis->m_lsTaskInfo.begin(); it != pThis->m_lsTaskInfo.end(); ++it)
+                // 获取下一个未执行的任务
+                pThis->m_pTaskInfo = nullptr;
+                for (std::list<TaskRunner::TaskInfo*>::iterator it = pThis->m_lsTaskInfo.begin(); it != pThis->m_lsTaskInfo.end(); ++it)
+                {
+                    if ((*it)->iState == 0)
                     {
-                        if ((*it)->iState == 0)
+                        pThis->m_pTaskInfo = (*it);
+                        pThis->m_pTaskInfo->iState = 1;
+                        break;
+                    }
+                }
+                pThis->m_pMutex->Unlock();
+
+                if (pThis->m_pTaskInfo != NULL)
+                {
+                    long ulWaitms = (long)pThis->m_pTaskInfo->ulTick - (long)SysUtil::GetCurrentTick();
+                    pThis->m_pSignal->Wait(ulWaitms > 0 ? ulWaitms : 0);
+                    if (pThis->m_pTaskInfo->vFuncs.size() < 2)
+                    { // 只有一个执行体时在当前线程执行
+                        pThis->m_pTaskInfo->iRet = pThis->m_pTaskInfo->vFuncs[0]();
+                    }
+                    else
+                    { // 多个执行体时在线程池执行
+                        // 无需加锁
+                        pThis->m_pvFuncs = &pThis->m_pTaskInfo->vFuncs;
+                        pThis->m_vFuncId.clear();
+                        for (int i = 0; i < pThis->m_pTaskInfo->vFuncs.size(); ++i)
                         {
-                            pFind = (*it);
-                            pFind->iState = 1;
-                            break;
+                            pThis->m_vFuncId.push_back(i);
                         }
+                        pThis->m_pSigPool->Notify(pThis->POOL_THREAD_COUNT);
+                        for (int i = 0; i < pThis->m_pvFuncs->size(); ++i)
+                        {
+                            pThis->m_pSigPoolEnd->Wait();
+                        }
+                        pThis->m_pTaskInfo->iRet = 0;
                     }
-                    pThis->m_pMutex->Unlock();
+                    pThis->m_pTaskInfo->iState = 2;
+                    if (pThis->m_pListener) pThis->m_pListener->Notify(pThis->m_pTaskInfo, pThis->m_vCache, pThis->m_nCache);
 
-                    if (pFind != NULL)
-                    {
-                        long ulWaitms = (long)pFind->ulTick - (long)SysUtil::GetCurrentTick();
-                        pThis->m_pSignal->Wait(ulWaitms > 0 ? ulWaitms : 0);
-                        if (pFind->vFuncs.size() < 2)
-                        { // 只有一个执行体时在当前线程执行
-                            pFind->iRet = pFind->vFuncs[0]();
-                        }
-                        else
-                        { // 多个执行体时在线程池执行
-                            // 无需加锁
-                            pThis->m_pvFuncs = &pFind->vFuncs;
-                            pThis->m_vFuncId.clear();
-                            for (int i = 0; i < pFind->vFuncs.size(); ++i)
-                            {
-                                pThis->m_vFuncId.push_back(i);
-                            }
-                            pThis->m_pSigPool->Notify(pThis->POOL_THREAD_COUNT);
-                            for (int i = 0; i < pThis->m_pvFuncs->size(); ++i)
-                            {
-                                pThis->m_pSigPoolEnd->Wait();
-                            }
-                            pFind->iRet = 0;
-                        }
-                        pFind->iState = 2;
-                        if (pThis->m_pListener) pThis->m_pListener->Notify(pFind, pThis->m_vCache, pThis->m_nCache);
-
-                        if (!pThis->m_isLoop)
-                        { // 清理已执行的任务
-                            pThis->m_pMutex->Lock();
-                            std::list<TaskRunner::TaskInfo*>::iterator it = std::find(pThis->m_lsTaskInfo.begin(), pThis->m_lsTaskInfo.end(), pFind);
-                            if (it != pThis->m_lsTaskInfo.end())
-                            {
-                                delete pFind;
-                                pThis->m_lsTaskInfo.erase(it);
-                            }
-                            pThis->m_pMutex->Unlock();
-                        }
-                    }
-                    else if (pThis->m_isLoop)
-                    { // 将所有任务置为未执行
+                    if (!pThis->m_isLoop)
+                    { // 清理已执行的任务
                         pThis->m_pMutex->Lock();
-                        for (auto& it : pThis->m_lsTaskInfo)
+                        std::list<TaskRunner::TaskInfo*>::iterator it = std::find(pThis->m_lsTaskInfo.begin(), pThis->m_lsTaskInfo.end(), pThis->m_pTaskInfo);
+                        if (it != pThis->m_lsTaskInfo.end())
                         {
-                            it->iState = 0;
-                            it->ulTick = (unsigned long)SysUtil::GetCurrentTick() + it->ulWait;
-                            it->iRet = 0;
+                            delete pThis->m_pTaskInfo;
+                            pThis->m_lsTaskInfo.erase(it);
                         }
                         pThis->m_pMutex->Unlock();
                     }
+                    pThis->m_pTaskInfo = nullptr;
+                }
+                else if (pThis->m_isLoop)
+                { // 将所有任务置为未执行
+                    pThis->m_pMutex->Lock();
+                    for (auto& it : pThis->m_lsTaskInfo)
+                    {
+                        it->iState = 0;
+                        it->ulTick = (unsigned long)SysUtil::GetCurrentTick() + it->ulWait;
+                        it->iRet = 0;
+                    }
+                    pThis->m_pMutex->Unlock();
+                }
 
                 } while (pThis->m_isRunning);
                 pThis->m_pSigExit->Notify(1);
@@ -543,8 +553,9 @@ namespace x2lib
                     pThis->m_vFuncId.pop_back();
                     pThis->m_pMtxPool->Unlock();
 
-                    pThis->m_pvFuncs->at(iFuncId)();
-                    pThis->m_pSigPoolEnd->Notify(1); // 通知1次【总共需m_pvFuncs->size()次】并行任务已经执行结束
+                pThis->m_pvFuncs->at(iFuncId)();
+                if (pThis->m_pListener) pThis->m_pListener->Notify(pThis->m_pTaskInfo, iFuncId,pThis->m_vCache, pThis->m_nCache);
+                pThis->m_pSigPoolEnd->Notify(1); // 通知1次【总共需m_pvFuncs->size()次】并行任务已经执行结束
 
                 } while (pThis->m_isRunning); // 经测试，continue可以执行到此条件
                 pThis->m_pSigExit->Notify(1);
@@ -570,8 +581,9 @@ namespace x2lib
 
         std::vector<std::thread*> m_vecpThread; // 0号为串行任务线程，余下为并行任务线程池
         std::list<TaskInfo*> m_lsTaskInfo;
-        std::vector<std::function<int(void)>>* m_pvFuncs;
-        std::vector<int> m_vFuncId;
+        TaskRunner::TaskInfo* m_pTaskInfo; // 当前正在执行的任务
+        std::vector<std::function<int(void)>>* m_pvFuncs; // 当前并行任务各funcer
+        std::vector<int> m_vFuncId; // 当前并行任务各funcer的索引
         Listener *m_pListener;
 
     };
