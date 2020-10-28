@@ -12,10 +12,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <Windows.h>
-#include <tchar.h>
-#include <stdio.h>
-#include <ctype.h>  
-#include <time.h>  
 #include <sys/types.h>
 #include <sys/timeb.h> 
 
@@ -27,8 +23,6 @@
 #include <set>
 #include <functional>
 #include <mutex>
-#include <unordered_map>
-#include <unordered_set>
 
 
 namespace x2lib
@@ -141,7 +135,7 @@ namespace x2lib
 
             // 添加一个执行体，返回当前执行体索引
             template<class F, class...Args>
-            int Put(F f, Args...args)
+            int Add(F f, Args...args)
             {
                 this->vFuncs.push_back(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
                 return this->vFuncs.size() - 1;

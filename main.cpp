@@ -93,7 +93,7 @@ int main()
         {
             tr.Start(false);
             TaskRunner::TaskInfo ti(func01, 1, 2);
-            ti.Put(func02, 3000);
+            ti.Add(func02, 3000);
             tr.Load(ti);
         }break;
         case 5:// 2.串行并行任务机
@@ -101,8 +101,8 @@ int main()
             tr.Start(false);
             TaskRunner::TaskInfo ti01(func01, 1, 2);
             TaskRunner::TaskInfo ti02(func02, 3000);
-            ti02.Put(func02, 1000);
-            ti02.Put(func02, 4000);
+            ti02.Add(func02, 1000);
+            ti02.Add(func02, 4000);
             TaskRunner::TaskInfo ti03(func01, 1, 2);
             tr.Load(ti01);
             tr.Load(ti02);
