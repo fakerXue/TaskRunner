@@ -58,7 +58,7 @@ public:
 int main()
 {
     Notifier notifier;
-    TaskRunner tr(&notifier);
+    TaskRunner tr(&notifier); // 使用Notifier监听任务机执行
 
     do
     {
@@ -70,20 +70,20 @@ int main()
         {
         case 1:// 1.定时器：普通函数、循环、2个参数
         {
-            tr.Start(true);
+            tr.Start(true); // 循环执行
             TaskRunner::TaskInfo ti(func01, 1, 2);
             tr.Load(ti);
         }break;
         case 2:// 2.定时器-成员函数、循环、1个参数
         {
-            tr.Start(true);
+            tr.Start(true); // 循环执行
             A a;
             TaskRunner::TaskInfo ti(&A::memfunc, &a, 10);
             tr.Load(ti);
         }break;
         case 3:// 3.串行任务机
         {
-            tr.Start(false);
+            tr.Start(true); // 循环执行
             TaskRunner::TaskInfo ti01(func01, 1, 2);
             TaskRunner::TaskInfo ti02(func02, 3000);
             tr.Load(ti01);
@@ -93,10 +93,10 @@ int main()
         {
             tr.Start(false);
             TaskRunner::TaskInfo ti(func01, 1, 2);
-            ti.Add(func02, 3000);
+            ti.Add(func02, 3000); // 此时ti有两个执行体，func01和func02并行执行
             tr.Load(ti);
         }break;
-        case 5:// 2.串行并行任务机
+        case 5:// 5.串行并行任务机
         {
             tr.Start(false);
             TaskRunner::TaskInfo ti01(func01, 1, 2);
@@ -104,6 +104,7 @@ int main()
             ti02.Add(func02, 1000);
             ti02.Add(func02, 4000);
             TaskRunner::TaskInfo ti03(func01, 1, 2);
+			// ti01，ti02，ti03串行执行，而每个ti里的执行体为并行执行
             tr.Load(ti01);
             tr.Load(ti02);
             tr.Load(ti03);
@@ -120,13 +121,14 @@ int main()
             tr.Load(ti01);
             tr.Load(ti02);
             tr.Load(ti03.Bind(&tr));
-            tr.Load(ti04);
+            tr.Load(ti04); // 由于在Notifier::Notify里调用了Seek，因而ti04永远无法执行
         }break;
         default: break;
         }
         getchar();
-        system("pause");
+		system("pause");
         tr.Stop(true, 3000);
+		printf("\n=======================\n");
 
     } while (true);
 

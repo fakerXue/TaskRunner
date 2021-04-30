@@ -113,7 +113,9 @@ namespace x2lib
             /*************************************************************************
             ** Desc		: 构造一个任务对象
             ** Param	: [in] f 任务过程函数指针，参数个数不限制，但至少保证返回值为int
-            **			  [in] args 任务函数参数
+            **			  [in] args 任务函数参数。需注意两点：
+            **              1.当f为成员函数时，首个参数必须为其对象指针；
+            **              2.函数的返回值必须设置为int；
             ** Return	:
             ** Author	: faker@2020-10-19 09:58:07
             *************************************************************************/
@@ -133,7 +135,15 @@ namespace x2lib
                 this->vFuncs.clear();
             };
 
-            // 添加一个执行体，返回当前执行体索引
+            /*************************************************************************
+            ** Desc		: 添加一个执行体
+            ** Param	: [in] f 任务过程函数指针，参数个数不限制，但至少保证返回值为int
+            **			  [in] args 任务函数参数。需注意两点：
+            **              1.当f为成员函数时，首个参数必须为其对象指针；
+            **              2.函数的返回值必须设置为int；
+            ** Return	: 返回当前执行体索引
+            ** Author	: faker@2020-10-19
+            *************************************************************************/
             template<class F, class...Args>
             int Add(F f, Args...args)
             {
@@ -144,7 +154,7 @@ namespace x2lib
             // 删除指定索引的执行体，返回剩余执行体个数
             int Del(int iFunc)
             {
-                if (iFunc >= this->vFuncs.size())
+                if (iFunc >= (int)this->vFuncs.size())
                     return -1;
                 this->vFuncs.erase(this->vFuncs.begin() + iFunc);
                 return this->vFuncs.size();
@@ -223,15 +233,15 @@ namespace x2lib
             m_isLoop = false;
             m_vecpThread.resize(1 + POOL_THREAD_COUNT);
             char szSigName[128] = { 0 };
-            sprintf(szSigName, "TaskRunner_m_pSignal_%08x", &nCache);
+            sprintf(szSigName, "TaskRunner_m_pSignal_%08x", (unsigned int)&nCache);
             m_pSignal = new Signal(0, 1, szSigName);
-            sprintf(szSigName, "TaskRunner_m_pSigExit_%08x", &nCache);
+            sprintf(szSigName, "TaskRunner_m_pSigExit_%08x", (unsigned int)&nCache);
             m_pSigExit = new Signal(0, 1 + POOL_THREAD_COUNT, szSigName);
             m_pMutex = new Mutex();
             m_pMtxPool = new Mutex();
-            sprintf(szSigName, "TaskRunner_m_pSigPool_%08x", &nCache);
+            sprintf(szSigName, "TaskRunner_m_pSigPool_%08x", (unsigned int)&nCache);
             m_pSigPool = new Signal(0, POOL_THREAD_COUNT, szSigName);
-            sprintf(szSigName, "TaskRunner_m_pSigPoolEnd_%08x", &nCache);
+            sprintf(szSigName, "TaskRunner_m_pSigPoolEnd_%08x", (unsigned int)&nCache);
             m_pSigPoolEnd = new Signal(0, 1, szSigName);
         };
         virtual ~TaskRunner()
@@ -479,12 +489,12 @@ namespace x2lib
                         // 无需加锁
                         pThis->m_pvFuncs = &pThis->m_pTaskInfo->vFuncs;
                         pThis->m_vFuncId.clear();
-                        for (int i = 0; i < pThis->m_pTaskInfo->vFuncs.size(); ++i)
+                        for (unsigned int i = 0; i < pThis->m_pTaskInfo->vFuncs.size(); ++i)
                         {
                             pThis->m_vFuncId.push_back(i);
                         }
                         pThis->m_pSigPool->Notify(pThis->POOL_THREAD_COUNT);
-                        for (int i = 0; i < pThis->m_pvFuncs->size(); ++i)
+                        for (unsigned int i = 0; i < pThis->m_pvFuncs->size(); ++i)
                         {
                             pThis->m_pSigPoolEnd->Wait();
                         }
